@@ -20,6 +20,28 @@ def main():
     
     text = f'''\
 #! /bin/sh
+### BEGIN INIT INFO
+# Provides:          {args.name}
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: {args.desc}
+# Description:       This file should be used to construct scripts to be
+#                    placed in /etc/init.d.
+### END INIT INFO
+
+# This version was forked from jmtatsch/jupyter.
+# 1. The problem of not stopping the jupyter service is fixed.
+# It was caused by the exec problem. More details are found in 
+# https://chris-lamb.co.uk/posts/start-stop-daemon-exec-vs-startas
+# 2. Previously the jupyter was run as root, but it is changed to
+# be executed as a non-privilege user like 1000:1000 (UID:GID)
+# 3. The working dir is added as an argument.   
+
+# Do NOT "set -e"
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 DESC="Start Jupyter notebook server as a service"
 UID=1000
