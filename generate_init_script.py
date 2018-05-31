@@ -7,46 +7,29 @@ def main():
     parser.add_argument('-v', '--version', action='version',
                         version='Version: %(prog)s-{version}'.format(version=VERSION))
     
-    parser.add_argument('name', metavar='SYMBOLS', type=str, nargs='+',
-                        help='symbol list using format EURUSD EURGBP')
-    parser.add_argument('-d', '--day', type=valid_date, help='specific day format YYYY-MM-DD (default today)',
-                        default=date.today() - timedelta(1))
-    parser.add_argument('-s', '--startdate', type=valid_date, help='start date format YYYY-MM-DD (default today)')
-    parser.add_argument('-e', '--enddate', type=valid_date, help='end date format YYYY-MM-DD (default today)')
-    parser.add_argument('-t', '--thread', type=int, help='number of threads (default 20)', default=5)
-    parser.add_argument('-f', '--folder', type=str, help='destination folder (default .)', default='.')
-    parser.add_argument('-c', '--candle', type=valid_timeframe,
-                        help='use candles instead of ticks. Accepted values M1 M2 M5 M10 M15 M30 H1 H4',
-                        default=TimeFrame.TICK)
-    parser.add_argument('--header', action='store_true', help='include CSV header (default false)', default=False)
+    parser.add_argument('name', metavar='NAME', type=str, nargs='1',
+                        help='name of the init script')
+    parser.add_argument('desc', metavar='DESC', type=str, nargs='1',
+                        help='description of the process')
+    parser.add_argument('daemon', metavar='DAEMON', type=str, nargs='1',
+                        help='path to the daemon process')
+    parser.add_argument('args', metavar='ARGS', type=str, nargs='1',
+                        help='arguments passed to the daemon')
     
     args = parser.parse_args()
-
-    if args.startdate is not None:
-        start = args.startdate
-    else:
-        start = args.day
-
-    if args.enddate is not None:
-        end = args.enddate
-    else:
-        end = args.day
-
-    set_up_signals()
-    app(args.symbols, start, end, args.thread, args.candle, args.folder, args.header)
     
-    text = '''\
+    text = f'''\
 #! /bin/sh
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 DESC="Start Jupyter notebook server as a service"
 UID=1000
 GID=1000
-NAME=jupyter
-DAEMON=/usr/local/bin/jupyter-notebook
-DAEMON_ARGS="--ip=10.128.0.3 --config=/home/halfjuice/.jupyter/jupyter_notebook_config.py --notebook-dir=/home/halfjuice"
+NAME={args.name}
+DAEMON={args.daemon}
+DAEMON_ARGS="{args.args}"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
-LOG_PATH=/var/log/jupyter
+LOG_PATH=/var/log/{args.name}
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
@@ -181,6 +164,11 @@ esac
 :
 '''
 
+    fn = f'/etc/init.d/{args.name}'
+
+    with open(fn, 'w') as fp:
+      fp.write(text)
+    os.chmod(fn, 0o777)
 
 if __name__ == '__main__':
     main()
