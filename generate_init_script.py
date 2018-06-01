@@ -1,4 +1,5 @@
 import argparse
+import os
 
 VERSION = '1.0.0'
 
@@ -191,6 +192,7 @@ esac
     with open(fn, 'w') as fp:
       fp.write(text)
     os.chmod(fn, 0o777)
+    os.mkdir('/var/log/{args.name}')
 
 if __name__ == '__main__':
     main()
